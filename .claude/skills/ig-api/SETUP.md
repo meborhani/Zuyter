@@ -8,8 +8,7 @@
    `instagram_business_manage_insights`, `instagram_business_manage_comments`,
    `instagram_business_content_publish`.
 4. Exchange it for a long-lived token (about 60 days, refreshable) as shown in Meta's docs.
-5. Export it where Claude runs, never in a file that is committed:
-   `export IG_ACCESS_TOKEN=...`
+5. Add it as an environment network secret: Bearer, allowed website `graph.instagram.com`, header `Authorization` with prefix `Bearer` and the token as value. (Or export `IG_ACCESS_TOKEN` locally; never commit it.)
 6. Test: `python3 .claude/skills/ig-api/ig_api.py me`
 
 While the app is in development mode only accounts you add as testers work, which is

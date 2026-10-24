@@ -2,7 +2,8 @@
 """Small CLI over the official Instagram API (Instagram Login). Stdlib only.
 
 Env:
-  IG_ACCESS_TOKEN   long-lived token (never printed, never stored by this script)
+  IG_ACCESS_TOKEN   optional long-lived token (never printed or stored). If unset, the
+                    environment's network secret supplies Authorization: Bearer.
   IG_API_VERSION    default v21.0
   IG_API_HOST       default graph.instagram.com
 
@@ -19,11 +20,12 @@ VER = os.environ.get("IG_API_VERSION", "v21.0")
 
 
 def call(method, path, params=None):
-    token = os.environ.get("IG_ACCESS_TOKEN")
-    if not token:
-        sys.exit("IG_ACCESS_TOKEN is not set")
+    # Token comes from IG_ACCESS_TOKEN if set; otherwise the environment's network
+    # secret adds the Authorization: Bearer header to requests for HOST.
+    token = os.environ.get("IG_ACCESS_TOKEN", "")
     params = dict(params or {})
-    params["access_token"] = token
+    if token:
+        params["access_token"] = token
     url = f"https://{HOST}/{VER}/{path}"
     data = None
     if method == "GET":
@@ -34,7 +36,9 @@ def call(method, path, params=None):
         with urllib.request.urlopen(urllib.request.Request(url, data=data, method=method), timeout=60) as r:
             return json.load(r)
     except urllib.error.HTTPError as e:
-        body = e.read().decode(errors="replace").replace(token, "***")
+        body = e.read().decode(errors="replace")
+        if token:
+            body = body.replace(token, "***")
         sys.exit(f"HTTP {e.code}: {body}")
 
 

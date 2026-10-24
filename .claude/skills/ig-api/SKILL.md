@@ -6,7 +6,7 @@ description: Read the user's own Instagram data (profile, posts, insights, comme
 # ig-api
 
 Wraps the official Instagram API with `ig_api.py` (stdlib Python, no installs).
-Needs `IG_ACCESS_TOKEN` in the environment. If it is missing, point the user to
+Auth is either the `IG_ACCESS_TOKEN` env var or an environment network secret that adds `Authorization: Bearer` for graph.instagram.com. If `me` returns 401, point the user to
 `SETUP.md` in this folder. Never ask for an Instagram password and never print
 or save the token.
 
