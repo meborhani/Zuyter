@@ -77,6 +77,8 @@
   }
   .bot .bubble  { background: var(--mist); border-end-start-radius: 6px; }
   .user .bubble { background: var(--plum); color: #fff; border-end-end-radius: 6px; }
+  .bubble a.inl { color: var(--plum); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--rose); }
+  .bubble a.inl:hover { color: var(--plum-deep); }
   .bubble a.go {
     display: inline-block; margin-top: 8px; padding: 2px 16px; border-radius: 999px;
     border: 1.5px solid var(--plum); color: var(--plum);
@@ -253,20 +255,54 @@
     d.innerHTML = '<svg viewBox="0 0 24 24"><use href="#bloom"/></svg>';
     return d;
   }
-  function bubble(text) {
+  const PHONE_RE = /(09031464741|۰۹۰۳۱۴۶۴۷۴۱)/;
+  const IG_URL = "https://www.instagram.com/zuyter.ir";
+  // متن ربات: اسم محصول ([[id|نام]]) و شماره‌ی پشتیبانی و اینستاگرام زویتر لینک می‌شوند.
+  // هیچ HTML از سرور وارد صفحه نمی‌شود؛ فقط آدرس‌های zuyter.ir و همین صفحه‌ی اینستاگرام مجازند.
+  function richText(text, linkmap) {
+    const frag = document.createDocumentFragment();
+    const re = /\[\[(\d+)\|([^\]]{1,80})\]\]|(09031464741|۰۹۰۳۱۴۶۴۷۴۱)|(https:\/\/www\.instagram\.com\/zuyter\.ir)/g;
+    let last = 0, m;
+    const link = (href, label, cls, external) => {
+      const a = document.createElement("a");
+      a.className = cls;
+      a.href = href;
+      a.textContent = label;
+      if (external) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+      return a;
+    };
+    while ((m = re.exec(text))) {
+      if (m.index > last) frag.append(text.slice(last, m.index));
+      if (m[1]) {
+        const url = linkmap && linkmap[m[1]];
+        if (url && SAFE_URL.test(url)) frag.append(link(url, m[2], "inl", true));
+        else frag.append(m[2]);
+      } else if (m[3]) {
+        frag.append(link("tel:" + PHONE, m[3], "inl tel", false));
+      } else {
+        frag.append(link(IG_URL, "اینستاگرام زویتر", "inl", true));
+      }
+      last = re.lastIndex;
+    }
+    if (last < text.length) frag.append(text.slice(last));
+    return frag;
+  }
+  function bubble(text, rich, linkmap) {
     const b = document.createElement("div");
     b.className = "bubble";
-    b.textContent = text;
+    if (rich) b.append(richText(text, linkmap));
+    else b.textContent = text;
     return b;
   }
   function userSay(text) {
     row("user").appendChild(bubble(text));
     scrollDown();
   }
-  function botSay(text, ...extras) {
+  function botSay(text, ...extras) { return botSayMap(text, null, ...extras); }
+  function botSayMap(text, linkmap, ...extras) {
     const r = row("bot");
     r.appendChild(avatar());
-    const b = bubble(text);
+    const b = bubble(text, true, linkmap);
     extras.filter(Boolean).forEach((x) => b.appendChild(x));
     r.appendChild(b);
     scrollDown();
@@ -327,6 +363,9 @@
     tel.textContent = PHONE;
     const extra = document.createElement("div");
     extra.append("اگه عجله داری با پشتیبانی زویتر تماس بگیر: ", tel);
+    const ig = document.createElement("div");
+    ig.append("آخرین تخفیف‌ها و اطلاعات محصولات رو هم می‌تونی تو ", richText(IG_URL), " ببینی 💜");
+    extra.append(ig);
     botSay("این یکی رو هنوز جوابش رو ندارم 🙈 ولی سؤالت ثبت شد تا تیم زویتر جوابش رو آماده کنه. اگه با کلمه‌های دیگه‌ای بپرسی، شاید پیداش کنم.", extra);
   }
 
@@ -390,7 +429,7 @@
       if (llm) {
         wait.remove();
         const links = (llm.links || []).map((l) => linkButton(l.url, l.category));
-        botSay(llm.reply, ...links);
+        botSayMap(llm.reply, llm.linkmap || {}, ...links);
         remember("user", text);
         remember("bot", llm.reply);
         return;
