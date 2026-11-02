@@ -185,6 +185,11 @@
     const q = input.value.trim();
     if (!q || send.disabled) return;
     input.value = "";
+    if (/^(سلام|درود|وقت بخیر|صبح بخیر|عصر بخیر|hi|hello)[\s!.؟?]*$/i.test(q)) {
+      add(q, "user");
+      add("سلام! سؤال پوستی یا محصولی خود را بپرسید، مثلاً «کرم آبرسان مناسب پوست چرب» یا «علت جوش زدن صورت».", "bot");
+      return;
+    }
     send.disabled = true;
     add(q, "user");
     const typing = add("در حال جست‌وجو…", "bot");

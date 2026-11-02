@@ -262,6 +262,18 @@ for r in rows:
             "آدرس دفتر: تهران، تهرانپارس، فرجام شرقی پلاک ۶۱ واحد ۱۴\nشماره تماس: 09031464741\nایمیل: info@zuyter.com",
             "تماس با ما آدرس تلفن شماره پشتیبانی ایمیل دفتر", "درباره‌ی ما", r["link"])
 
+# Owner-curated synonyms: customers say "مرجوعی", the site says "بازگشت کالا".
+SYNONYMS = {
+    "آیا محصولات زویتر اصل": "اصالت اورجینال تقلبی اصل بودن مجوز وزارت بهداشت سازمان غذا و دارو",
+    "محصولات زویتر تا چه مدت ضمانت": "مرجوعی مرجوع عودت برگشت کالا بازگرداندن تعویض ضمانت",
+    "چطور می": "تخفیف کد تخفیف جشنواره حراج خبرنامه",
+    "شماره تماس، آدرس": "تلفن موبایل واتساپ آدرس ایمیل پشتیبانی تماس دفتر",
+}
+for row in out:
+    for prefix, syn in SYNONYMS.items():
+        if row["question"].startswith(prefix) and row["category"] in ("سؤالات متداول", "درباره‌ی ما"):
+            row["keywords"] = short(((row["keywords"] + " ") if row["keywords"] else "") + syn, 500)
+
 json.dump(out, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False)
 from collections import Counter
 
