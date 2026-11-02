@@ -93,6 +93,7 @@
     font: inherit; cursor: pointer; border: 0; border-radius: 12px;
     padding: 0 18px; background: var(--accent); color: var(--accent-text);
   }
+  .msg a.src { display: inline-block; margin-top: 6px; font-size: .85rem; color: var(--accent); }
   form button:disabled { opacity: .5; cursor: default; }
   footer { padding: 0 16px 12px; font-size: .75rem; color: var(--muted); text-align: center; }
 </style>
@@ -121,10 +122,21 @@
   const input = document.getElementById("q");
   const send = document.getElementById("send");
 
-  function add(text, who) {
+  function add(text, who, url) {
     const el = document.createElement("div");
     el.className = "msg " + who;
     el.textContent = text;
+    // Only link back to the brand's own site.
+    if (url && /^https:\/\/(www\.)?zuyter\.ir\//.test(url)) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.className = "src";
+      a.textContent = "مشاهده در سایت زویتر ←";
+      el.appendChild(document.createElement("br"));
+      el.appendChild(a);
+    }
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
     return el;
@@ -143,7 +155,7 @@
       b.textContent = it.question;
       b.addEventListener("click", () => {
         add(it.question, "user");
-        add(it.answer, "bot");
+        add(it.answer, "bot", it.url);
       });
       box.appendChild(b);
     });
@@ -182,7 +194,7 @@
       if (!rows.length) {
         add("پاسخ این سؤال را هنوز در اطلاعاتمان نداریم. سؤال شما ثبت شد تا به‌زودی پاسخ داده شود. می‌توانید آن را با عبارت دیگری هم بپرسید.", "bot");
       } else {
-        add(rows[0].answer, "bot");
+        add(rows[0].answer, "bot", rows[0].url);
         addRelated(rows.slice(1));
       }
     } catch (err) {
