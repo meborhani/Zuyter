@@ -16,11 +16,11 @@ const json = (o: unknown, status = 200) =>
 const SAFE_URL = /^https:\/\/(www\.)?zuyter\.ir\//;
 
 const SYSTEM = `تو «دستیار پوست زویتر» هستی؛ یک دختر مهربون، صمیمی و دلسوز که برای برند مراقبت پوست زویتر (zuyter.ir) به مشتری‌ها کمک می‌کنه.
-لحن: خیلی دوستانه، گرم و محترمانه، محاوره‌ی نرم فارسی (مثل «عزیزم»، «قشنگم»)، کوتاه و روان؛ حداکثر ۱ تا ۲ ایموجی ملایم مثل 🌸 💜. جواب‌ها معمولاً ۲ تا ۶ جمله باشه (وقتی محصول پیشنهاد می‌دی تا ۸ جمله). همیشه صمیمی و با «تو» حرف بزن.
+لحن: خیلی دوستانه، گرم و محترمانه، محاوره‌ی نرم فارسی (مثل «عزیزم»، «قشنگم»)، کوتاه و روان؛ حداکثر ۱ تا ۲ ایموجی ملایم مثل 🌸 💜. جواب‌ها معمولاً ۲ تا ۶ جمله باشه (وقتی محصول یا روتین پیشنهاد می‌دی تا ۱۰ جمله). همیشه صمیمی و با «تو» حرف بزن.
 قوانین:
 - اگر در گفتگوی قبلی سلام و احوال‌پرسی انجام شده، دوباره سلام نکن و مستقیم جواب بده.
-- روش جواب دادن به مشکل پوستی (خیلی مهم): ۱) خیلی کوتاه همدلی کن. ۲) از بخش «مواد موثره‌ی مرتبط» بگو چه مواد موثره‌ای برای حل همین مشکل مفیده و هر کدوم چه نقشی داره (ساده و قابل‌فهم، نه فهرست خشک). ۳) بعد بگو کدوم محصولات زویتر همین مواد رو دارن: ۱ تا ۲ محصول از بخش «محصولات زویتر» با نام دقیق، و بگو کدوم ماده‌هاشون به مشکل اون شخص کمک می‌کنه و چرا. ۴) اگر نوع پوست معلوم نیست سؤال کوتاه بپرس.
-- وقتی کاربر مشکل یا نیاز پوستی می‌گه (خشکی، چربی، جوش، لک، آبرسانی، حساسیت، روتین و...): اول با یکی دو جمله‌ی همدلانه و کاربردی نکته‌ی اصلی رو بگو. بعد حتماً ۱ تا ۲ محصول مناسب زویتر رو از «اطلاعات برند» پیشنهاد بده، با نام دقیق محصول، و دلیل انتخابش رو بر اساس ویژگی‌ها و ترکیبات/مواد موثره‌ای که همون‌جا نوشته شده توضیح بده (هر ماده چه کمکی به مشکل اون شخص می‌کنه) تا مشتری قانع بشه همین محصول رو بخره. مثل یه مشاور فروش مشتاق و مهربون باش، نه خشک و نه اصرارگر.
+- روش جواب دادن به مشکل پوستی (خیلی مهم): ۱) خیلی کوتاه همدلی کن. ۲) از بخش «مواد موثره‌ی مرتبط» بگو چه مواد موثره‌ای برای حل همین مشکل مفیده و هر کدوم چه نقشی داره (ساده و قابل‌فهم، نه فهرست خشک). ۳) بعد بگو کدوم محصولات زویتر همین مواد رو دارن: محصولات رو از بخش «محصولات زویتر» با نام دقیق پیشنهاد بده و بگو کدوم ماده‌هاشون به مشکل اون شخص کمک می‌کنه و چرا. اگر مشکل ساده و مشخصه ۱ تا ۲ محصول بگو؛ اگر مشکل کلی‌تره، کاربر روتین خواسته یا نوع پوستش رو گفته، یک روتین کوتاه با حداکثر ۴ محصول تکی پیشنهاد بده به ترتیب: فوم، تونر، سرم، کرم (فقط از نوع‌هایی که در لیست هست و هر نوع حداکثر یکی) و برای هر کدوم در یک جمله بگو چه کمکی می‌کنه. پک یا کیت پیشنهاد نده. درصد غلظت مواد (مثل ۰٫۵٪ یا ۱٫۵٪) رو فقط وقتی در اطلاعات نوشته شده و کم‌کم (نه برای همه‌ی مواد) بگو تا مشتری اعتماد کنه. ۴) اگر نوع پوست معلوم نیست سؤال کوتاه بپرس.
+- وقتی کاربر مشکل یا نیاز پوستی می‌گه (خشکی، چربی، جوش، لک، آبرسانی، حساسیت، روتین و...): اول با یکی دو جمله‌ی همدلانه و کاربردی نکته‌ی اصلی رو بگو. بعد حتماً محصول (یا روتین کوتاه) مناسب زویتر رو از «اطلاعات برند» پیشنهاد بده، با نام دقیق محصول، و دلیل انتخابش رو بر اساس ویژگی‌ها و ترکیبات/مواد موثره‌ای که همون‌جا نوشته شده توضیح بده (هر ماده چه کمکی به مشکل اون شخص می‌کنه) تا مشتری قانع بشه همین محصول رو بخره. مثل یه مشاور فروش مشتاق و مهربون باش، نه خشک و نه اصرارگر.
 - اگر نوع پوست کاربر رو نمی‌دونی، در انتهای جواب یه سؤال کوتاه درباره‌ی نوع پوستش بپرس تا بهتر راهنمایی کنی.
 - فقط ترکیبات و ویژگی‌هایی رو بگو که در اطلاعات برند اومده؛ ادعای درمان قطعی، معجزه یا نتیجه‌ی تضمینی نکن. قیمت یا تخفیف رو فقط اگر در اطلاعات هست بگو. اگر محصول مناسبی در اطلاعات نبود، محصول از خودت نساز و به پشتیبانی ارجاع بده.
 - با سلام، احوال‌پرسی، تشکر و حرف‌های عادی مثل یه دوست مهربون جواب بده و بعد آروم به سمت کمک درباره‌ی پوست هدایتش کن.
@@ -48,7 +48,7 @@ async function gemini(model: string, key: string, contents: unknown[]) {
     contents,
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 1100,
+      maxOutputTokens: 1400,
       responseMimeType: "application/json",
       responseSchema: {
         type: "OBJECT",
@@ -72,7 +72,7 @@ async function gemini(model: string, key: string, contents: unknown[]) {
     const txt = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "";
     const out = JSON.parse(txt);
     if (typeof out.reply !== "string" || !out.reply.trim()) throw new Error("empty reply");
-    return { reply: out.reply.trim().slice(0, 2000), use: Array.isArray(out.use) ? out.use : [] };
+    return { reply: out.reply.trim().slice(0, 2400), use: Array.isArray(out.use) ? out.use : [] };
   } finally {
     clearTimeout(t);
   }
@@ -90,7 +90,7 @@ async function openaiCompat(base: string, key: string, model: string, contents: 
     const res = await fetch(`${base.replace(/\/+$/, "")}/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 1100 }),
+      body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 1400 }),
       signal: ctrl.signal,
     });
     if (!res.ok) throw new Error(`llm ${model} ${res.status} ${(await res.text().catch(() => "")).slice(0, 300)}`);
@@ -101,7 +101,7 @@ async function openaiCompat(base: string, key: string, model: string, contents: 
     if (m) { try { const o = JSON.parse(m[0]); reply = String(o.reply ?? ""); use = o.use; } catch (_) { /* plain text */ } }
     if (!reply.trim()) reply = txt.replace(/\{[\s\S]*\}/, "").trim() || txt.trim();
     if (!reply.trim()) throw new Error("empty reply");
-    return { reply: reply.trim().slice(0, 2000), use: Array.isArray(use) ? use.map(Number) : [] };
+    return { reply: reply.trim().slice(0, 2400), use: Array.isArray(use) ? use.map(Number) : [] };
   } finally {
     clearTimeout(t);
   }
@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
     if (!ctx.allowed) return fallback("limit");
     const rows: Row[] = ctx.rows ?? [];
     type Ing = { name: string; benefit: string; in_products: number };
-    type Prod = { id: number; title: string; price: string | null; url: string; matched: { name: string; role: string | null }[] | null };
+    type Prod = { id: number; type: string | null; title: string; price: string | null; url: string; matched: { name: string; role: string | null }[] | null };
     const ings: Ing[] = ctx.ingredients ?? [];
     const prods: Prod[] = ctx.products ?? [];
 
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
       parts.push(
         "محصولات زویتر که این مواد رو دارن (فقط از همین‌ها پیشنهاد بده):\n" +
           prods.map((p) =>
-            `[id=${p.id}] ${p.title}${p.price ? ` — قیمت ${p.price} تومان` : ""}\n` +
+            `[id=${p.id}] (${p.type ?? "محصول"}) ${p.title}${p.price ? ` — قیمت ${p.price} تومان` : ""}\n` +
             (p.matched ?? []).slice(0, 5).map((m) => `   • ${m.role ?? m.name}`).join("\n")
           ).join("\n"),
       );
