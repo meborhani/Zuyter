@@ -1,5 +1,8 @@
-// Zuyter skin chat: RAG (knowledge table) + free Gemini model for natural, friendly Persian replies.
-// Secret needed: GEMINI_API_KEY  (Supabase → Edge Functions → Secrets). Optional: GEMINI_MODEL.
+// Zuyter skin chat: RAG (knowledge table) + a language model for natural, friendly Persian replies.
+// Secrets (Supabase → Edge Functions → Secrets), any ONE provider is enough:
+//   • LLM_API_KEY (+ optional LLM_BASE_URL, LLM_MODEL): any OpenAI-compatible service
+//     (OpenRouter, Cloudflare Workers AI, Groq, AvalAI, GapGPT, ...). Default base: OpenRouter.
+//   • GEMINI_API_KEY (+ optional GEMINI_MODEL): Google Gemini.
 // If anything fails (no key, quota, error) it answers {mode:"fallback"} and the page uses plain search.
 
 const CORS = {
@@ -67,6 +70,35 @@ async function gemini(model: string, key: string, contents: unknown[]) {
   }
 }
 
+// Any OpenAI-compatible chat/completions endpoint. Asks for JSON in the prompt (not all providers support JSON mode).
+async function openaiCompat(base: string, key: string, model: string, contents: { role: string; parts: { text: string }[] }[]) {
+  const messages = [
+    { role: "system", content: SYSTEM + '\nخروجی را فقط و فقط به صورت یک JSON با این شکل بده، بدون هیچ متن اضافه: {"reply":"متن جواب","use":[id,...]}' },
+    ...contents.map((c) => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts[0].text })),
+  ];
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 25000);
+  try {
+    const res = await fetch(`${base.replace(/\/+$/, "")}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 700 }),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`llm ${model} ${res.status}`);
+    const data = await res.json();
+    const txt: string = data?.choices?.[0]?.message?.content ?? "";
+    const m = txt.match(/\{[\s\S]*\}/);
+    let reply = "", use: unknown = [];
+    if (m) { try { const o = JSON.parse(m[0]); reply = String(o.reply ?? ""); use = o.use; } catch (_) { /* plain text */ } }
+    if (!reply.trim()) reply = txt.replace(/\{[\s\S]*\}/, "").trim() || txt.trim();
+    if (!reply.trim()) throw new Error("empty reply");
+    return { reply: reply.trim().slice(0, 2000), use: Array.isArray(use) ? use.map(Number) : [] };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   if (req.method !== "POST") return json({ error: "method" }, 405);
@@ -81,8 +113,9 @@ Deno.serve(async (req) => {
       .slice(-6)
       .map((h: Turn) => ({ role: h.role, text: h.text.slice(0, 600) }));
 
-    const key = Deno.env.get("GEMINI_API_KEY");
-    if (!key) return fallback("no-key");
+    const gKey = Deno.env.get("GEMINI_API_KEY");
+    const lKey = Deno.env.get("LLM_API_KEY");
+    if (!gKey && !lKey) return fallback("no-key");
 
     const url = Deno.env.get("SUPABASE_URL")!;
     const svc = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -107,10 +140,17 @@ Deno.serve(async (req) => {
     // history must start with a user turn
     while (contents.length > 1 && contents[0].role !== "user") contents.shift();
 
-    const models = [Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
     let out: { reply: string; use: number[] } | null = null;
-    for (const m of [...new Set(models)]) {
-      try { out = await gemini(m, key, contents); break; } catch (e) { console.error(String(e)); }
+    if (lKey) {
+      const base = Deno.env.get("LLM_BASE_URL") ?? "https://openrouter.ai/api/v1";
+      const model = Deno.env.get("LLM_MODEL") ?? "google/gemma-3-27b-it:free";
+      try { out = await openaiCompat(base, lKey, model, contents); } catch (e) { console.error(String(e)); }
+    }
+    if (!out && gKey) {
+      const models = [Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
+      for (const m of [...new Set(models)]) {
+        try { out = await gemini(m, gKey, contents); break; } catch (e) { console.error(String(e)); }
+      }
     }
     if (!out) return fallback("llm");
 
