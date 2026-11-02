@@ -118,11 +118,20 @@ Deno.serve(async (req) => {
     if (!gKey && !lKey) return fallback("no-key");
 
     const url = Deno.env.get("SUPABASE_URL")!;
-    const svc = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // New projects expose SUPABASE_SECRET_KEYS (JSON dictionary); older ones SUPABASE_SERVICE_ROLE_KEY.
+    let svc = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!svc) {
+      try { svc = String(Object.values(JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}"))[0] ?? ""); } catch (_) { /* none */ }
+    }
+    if (!svc) return fallback("no-secret-key");
     const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
     const ctxRes = await fetch(`${url}/rest/v1/rpc/chat_context`, {
       method: "POST",
-      headers: { apikey: svc, Authorization: `Bearer ${svc}`, "Content-Type": "application/json" },
+      headers: {
+        apikey: svc,
+        ...(svc.startsWith("eyJ") ? { Authorization: `Bearer ${svc}` } : {}),
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ q: message, ip_hash: (await sha(ip + "zuyter")).slice(0, 32) }),
     });
     if (!ctxRes.ok) return fallback("ctx");
