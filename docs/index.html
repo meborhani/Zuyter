@@ -348,6 +348,32 @@
     }
   }
 
+  /* ---------- مدل زبانی (تابع chat در Supabase)؛ اگر در دسترس نبود null برمی‌گردد ---------- */
+  const history = [];
+  async function chatLLM(message) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+    try {
+      const res = await fetch(SUPABASE_URL + "/functions/v1/chat", {
+        method: "POST",
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ message, history: history.slice(-6) }),
+        signal: ctrl.signal,
+      });
+      if (!res.ok) return null;
+      const d = await res.json();
+      return d.mode === "llm" && d.reply ? d : null;
+    } catch (_) {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  function remember(role, text) {
+    history.push({ role, text: String(text).slice(0, 600) });
+    if (history.length > 12) history.splice(0, history.length - 12);
+  }
+
   let busy = false, starters = null;
 
   async function handle(raw) {
@@ -360,6 +386,16 @@
     userSay(text);
     const wait = typing();
     try {
+      const llm = await chatLLM(text);
+      if (llm) {
+        wait.remove();
+        const links = (llm.links || []).map((l) => linkButton(l.url, l.category));
+        botSay(llm.reply, ...links);
+        remember("user", text);
+        remember("bot", llm.reply);
+        return;
+      }
+      // مدل زبانی در دسترس نبود: جستجوی ساده‌ی همیشگی
       const talk = smallTalk(text);
       if (talk.reply) {
         await sleep(reduce ? 0 : 700);
