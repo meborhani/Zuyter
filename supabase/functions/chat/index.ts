@@ -85,7 +85,7 @@ async function openaiCompat(base: string, key: string, model: string, contents: 
       body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 700 }),
       signal: ctrl.signal,
     });
-    if (!res.ok) throw new Error(`llm ${model} ${res.status}`);
+    if (!res.ok) throw new Error(`llm ${model} ${res.status} ${(await res.text().catch(() => "")).slice(0, 300)}`);
     const data = await res.json();
     const txt: string = data?.choices?.[0]?.message?.content ?? "";
     const m = txt.match(/\{[\s\S]*\}/);
