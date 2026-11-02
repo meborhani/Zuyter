@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مشاور پوست</title>
+<meta name="description" content="سؤال‌های پوستی خود را بپرسید">
+<style>
+  :root {
+    --bg: #faf6f3;
+    --surface: #ffffff;
+    --text: #2b2524;
+    --muted: #7b6f6c;
+    --accent: #c9715f;
+    --accent-text: #ffffff;
+    --bot: #f1e7e2;
+    --border: #eadfd9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1716;
+      --surface: #262120;
+      --text: #f1e9e6;
+      --muted: #a89c98;
+      --accent: #d98572;
+      --accent-text: #1b1716;
+      --bot: #332b29;
+      --border: #3a3230;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Tahoma, "Segoe UI", system-ui, sans-serif;
+    line-height: 1.8;
+    display: flex;
+    justify-content: center;
+  }
+  .app {
+    width: 100%;
+    max-width: 640px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border-inline: 1px solid var(--border);
+  }
+  header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 { margin: 0; font-size: 1.1rem; }
+  header p { margin: 2px 0 0; font-size: .85rem; color: var(--muted); }
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    max-width: 88%;
+    padding: 10px 14px;
+    border-radius: 16px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .msg.user { align-self: flex-start; background: var(--accent); color: var(--accent-text); border-end-start-radius: 4px; }
+  .msg.bot  { align-self: flex-end; background: var(--bot); border-end-end-radius: 4px; }
+  .related { align-self: flex-end; display: flex; flex-wrap: wrap; gap: 6px; max-width: 88%; }
+  .related small { width: 100%; color: var(--muted); }
+  .related button {
+    font: inherit; font-size: .85rem; cursor: pointer;
+    padding: 4px 12px; border-radius: 999px;
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .related button:hover { border-color: var(--accent); }
+  form {
+    display: flex; gap: 8px; padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+  input {
+    flex: 1; min-width: 0; font: inherit; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 14px;
+  }
+  input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  form button {
+    font: inherit; cursor: pointer; border: 0; border-radius: 12px;
+    padding: 0 18px; background: var(--accent); color: var(--accent-text);
+  }
+  form button:disabled { opacity: .5; cursor: default; }
+  footer { padding: 0 16px 12px; font-size: .75rem; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 id="brand">مشاور پوست</h1>
+    <p>سؤال پوستی‌تان را بنویسید تا از اطلاعات ما پاسخ بگیرید.</p>
+  </header>
+  <div id="log" role="log" aria-live="polite"></div>
+  <form id="form" autocomplete="off">
+    <input id="q" type="text" maxlength="300" placeholder="سؤال خود را بنویسید…" aria-label="سؤال شما" required>
+    <button id="send" type="submit">ارسال</button>
+  </form>
+  <footer>این اطلاعات جنبه‌ی آموزشی دارد و جایگزین نظر پزشک یا متخصص پوست نیست.</footer>
+</div>
+
+<script>
+  // Public (publishable) key: safe to expose; the database only allows calling ask_skin().
+  const SUPABASE_URL = "https://dfnvqplwqhuqtfhmpucl.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_QbC0Hov3a6gfwOcIiDqeHQ_pZs4x1-2";
+
+  const log = document.getElementById("log");
+  const form = document.getElementById("form");
+  const input = document.getElementById("q");
+  const send = document.getElementById("send");
+
+  function add(text, who) {
+    const el = document.createElement("div");
+    el.className = "msg " + who;
+    el.textContent = text;
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+    return el;
+  }
+
+  function addRelated(items) {
+    if (!items.length) return;
+    const box = document.createElement("div");
+    box.className = "related";
+    const label = document.createElement("small");
+    label.textContent = "سؤال‌های مرتبط:";
+    box.appendChild(label);
+    items.forEach((it) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = it.question;
+      b.addEventListener("click", () => {
+        add(it.question, "user");
+        add(it.answer, "bot");
+      });
+      box.appendChild(b);
+    });
+    log.appendChild(box);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  async function ask(q) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 15000);
+    try {
+      const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/ask_skin", {
+        method: "POST",
+        headers: { "apikey": SUPABASE_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ q }),
+        signal: ctrl.signal,
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return await res.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q || send.disabled) return;
+    input.value = "";
+    send.disabled = true;
+    add(q, "user");
+    const typing = add("در حال جست‌وجو…", "bot");
+    try {
+      const rows = await ask(q);
+      typing.remove();
+      if (!rows.length) {
+        add("پاسخ این سؤال را هنوز در اطلاعاتمان نداریم. سؤال شما ثبت شد تا به‌زودی پاسخ داده شود. می‌توانید آن را با عبارت دیگری هم بپرسید.", "bot");
+      } else {
+        add(rows[0].answer, "bot");
+        addRelated(rows.slice(1));
+      }
+    } catch (err) {
+      typing.remove();
+      add("اتصال برقرار نشد. لطفاً چند لحظه بعد دوباره امتحان کنید.", "bot");
+    } finally {
+      setTimeout(() => { send.disabled = false; input.focus(); }, 1200);
+    }
+  });
+
+  add("سلام! سؤال پوستی خود را بپرسید.", "bot");
+</script>
+</body>
+</html>
