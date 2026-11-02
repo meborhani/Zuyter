@@ -2,174 +2,342 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مشاور پوست</title>
-<meta name="description" content="سؤال‌های پوستی خود را بپرسید">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>دستیار پوست زویتر</title>
+<meta name="description" content="سؤال‌های پوستی‌ات را از دستیار مهربان زویتر بپرس">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2371357B' d='M12 3C8.5 8 9 13 12 17c3-4 3.500-9 0-14zM5 7c0 5 3 9 7 10-2-4-3.500-8-7-10zm14 0c0 5-3 9-7 10 2-4 3.500-8 7-10z'/%3E%3Ccircle cx='12' cy='14' r='1.300' fill='%23F2994A'/%3E%3C/svg%3E">
 <style>
-  :root {
-    --bg: #faf6f3;
-    --surface: #ffffff;
-    --text: #2b2524;
-    --muted: #7b6f6c;
-    --accent: #c9715f;
-    --accent-text: #ffffff;
-    --bot: #f1e7e2;
-    --border: #eadfd9;
+  @font-face {
+    font-family: "Vazirmatn";
+    src: url("fonts/Vazirmatn-subset.woff2") format("woff2");
+    font-weight: 300 700;
+    font-display: swap;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1b1716;
-      --surface: #262120;
-      --text: #f1e9e6;
-      --muted: #a89c98;
-      --accent: #d98572;
-      --accent-text: #1b1716;
-      --bot: #332b29;
-      --border: #3a3230;
-    }
+  :root {
+    --plum: #71357B;        /* لوگو و برچسب محصولات */
+    --plum-deep: #4A2352;
+    --ink: #2A2340;         /* سرمه‌ای-آلویی برای متن */
+    --mist: #F5EDFA;        /* حباب ربات */
+    --lilac: #E4D6F2;
+    --rose: #C76D9F;        /* برچسب تونر */
+    --blush: #FCEFF5;
+    --blush-edge: #EBC3D7;
+    --saffron: #F2994A;
+    --muted: #7C6B88;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: Tahoma, "Segoe UI", system-ui, sans-serif;
-    line-height: 1.8;
-    display: flex;
-    justify-content: center;
+    background: #fff;
+    color: var(--ink);
+    font-family: "Vazirmatn", Tahoma, "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 2;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* هاله‌ی یاسی بالای صفحه، مثل پس‌زمینه‌ی کاتالوگ */
+  body::before {
+    content: "";
+    position: fixed; inset: 0 0 auto 0; height: 260px; z-index: -1;
+    background: radial-gradient(60% 100% at 50% 0%, #EDE0F8 0%, #F8F2FC 55%, #FFFFFF 100%);
   }
   .app {
-    width: 100%;
-    max-width: 640px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    background: var(--surface);
-    border-inline: 1px solid var(--border);
+    max-width: 560px; height: 100vh; height: 100dvh;
+    margin: 0 auto; display: flex; flex-direction: column;
   }
-  header {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  header h1 { margin: 0; font-size: 1.1rem; }
-  header p { margin: 2px 0 0; font-size: .85rem; color: var(--muted); }
+
+  /* ---------- هدر ---------- */
+  header { position: relative; text-align: center; padding: 20px 20px 10px; }
+  .logo { display: block; width: 156px; height: auto; margin: 0 auto; }
+  .tagline { margin: 2px 0 0; font-size: .9rem; font-weight: 400; color: var(--plum-deep); }
+  .crocus { position: absolute; top: 8px; inset-inline-end: 14px; width: 50px; height: auto; overflow: visible; }
+  .crocus .petals { transform-box: fill-box; transform-origin: 50% 100%; animation: bloom 1.3s cubic-bezier(.2,.8,.2,1) .25s both; }
+  .crocus .stamens { animation: fade .8s ease 1.1s both; }
+  @keyframes bloom { from { transform: scale(.55); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes fade  { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ---------- گفتگو ---------- */
   #log {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex: 1; overflow-y: auto; overscroll-behavior: contain;
+    padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 12px;
   }
-  .msg {
-    max-width: 88%;
-    padding: 10px 14px;
-    border-radius: 16px;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+  .row { display: flex; align-items: flex-end; gap: 8px; }
+  .row.bot  { justify-content: flex-start; }
+  .row.user { justify-content: flex-end; }
+  .avatar {
+    flex: none; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--lilac); color: var(--plum);
+    display: grid; place-items: center; margin-bottom: 2px;
   }
-  .msg.user { align-self: flex-start; background: var(--accent); color: var(--accent-text); border-end-start-radius: 4px; }
-  .msg.bot  { align-self: flex-end; background: var(--bot); border-end-end-radius: 4px; }
-  .related { align-self: flex-end; display: flex; flex-wrap: wrap; gap: 6px; max-width: 88%; }
-  .related small { width: 100%; color: var(--muted); }
-  .related button {
-    font: inherit; font-size: .85rem; cursor: pointer;
-    padding: 4px 12px; border-radius: 999px;
-    background: transparent; color: var(--text);
-    border: 1px solid var(--border);
+  .avatar svg { width: 20px; height: 20px; }
+  .bubble {
+    padding: 8px 16px; max-width: min(86%, 32rem);
+    border-radius: 20px; white-space: pre-line; overflow-wrap: anywhere;
   }
-  .related button:hover { border-color: var(--accent); }
-  form {
-    display: flex; gap: 8px; padding: 12px 16px;
-    border-top: 1px solid var(--border);
+  .bot .bubble  { background: var(--mist); border-end-start-radius: 6px; }
+  .user .bubble { background: var(--plum); color: #fff; border-end-end-radius: 6px; }
+  .bubble a.go {
+    display: inline-block; margin-top: 8px; padding: 2px 16px; border-radius: 999px;
+    border: 1.5px solid var(--plum); color: var(--plum);
+    font-size: .88rem; font-weight: 500; text-decoration: none; white-space: normal;
   }
-  input {
-    flex: 1; min-width: 0; font: inherit; color: var(--text);
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 10px 14px;
+  .bubble a.go:hover { background: var(--plum); color: #fff; }
+  .bubble a.tel { color: var(--plum); font-weight: 500; }
+  a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--plum); outline-offset: 2px; }
+
+  .dots { display: flex; gap: 5px; align-items: center; padding: 14px 18px; }
+  .dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--rose); animation: bob 1s ease-in-out infinite; }
+  .dots span:nth-child(2) { animation-delay: .15s; }
+  .dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bob { 0%, 70%, 100% { transform: translateY(0); opacity: .5; } 35% { transform: translateY(-5px); opacity: 1; } }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding-inline-start: 38px; }
+  .chips small { flex-basis: 100%; color: var(--muted); font-size: .8rem; line-height: 1.6; }
+  .chip {
+    font: inherit; font-size: .88rem; line-height: 1.7; cursor: pointer; text-align: start;
+    padding: 4px 14px; border-radius: 999px; color: var(--ink);
+    background: var(--blush); border: 1px solid var(--blush-edge);
+    max-width: 100%;
   }
-  input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  form button {
-    font: inherit; cursor: pointer; border: 0; border-radius: 12px;
-    padding: 0 18px; background: var(--accent); color: var(--accent-text);
+  .chip:hover { background: #F9E1EC; border-color: var(--rose); }
+
+  /* ---------- نوار پیام ---------- */
+  .dock { padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #F1E8F7; }
+  form { display: flex; gap: 8px; }
+  input#q {
+    flex: 1; min-width: 0; height: 48px; font: inherit; font-size: 16px; color: var(--ink);
+    background: #FCFAFE; border: 1.5px solid var(--lilac); border-radius: 999px; padding: 0 20px;
   }
-  .msg a.src { display: inline-block; margin-top: 6px; font-size: .85rem; color: var(--accent); }
-  form button:disabled { opacity: .5; cursor: default; }
-  footer { padding: 0 16px 12px; font-size: .75rem; color: var(--muted); text-align: center; }
+  input#q::placeholder { color: #A495B0; }
+  input#q:focus { border-color: var(--plum); box-shadow: 0 0 0 3px rgba(113, 53, 123, .14); outline: none; }
+  button#send {
+    flex: none; width: 48px; height: 48px; border: 0; border-radius: 50%; cursor: pointer;
+    background: var(--plum); color: #fff; display: grid; place-items: center;
+  }
+  button#send:hover:not(:disabled) { background: var(--plum-deep); }
+  button#send:disabled { opacity: .45; cursor: default; }
+  button#send svg { width: 22px; height: 22px; }
+  .note { margin: 6px 0 0; text-align: center; font-size: .72rem; line-height: 1.7; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crocus .petals, .crocus .stamens, .dots span { animation: none; }
+  }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="bloom" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M12 3C8.5 8 9 13 12 17c3-4 3.500-9 0-14z"/>
+    <path fill="currentColor" fill-opacity=".65" d="M5 7c0 5 3 9 7 10-2-4-3.500-8-7-10zM19 7c0 5-3 9-7 10 2-4 3.500-8 7-10z"/>
+    <circle cx="12" cy="14" r="1.300" fill="#F2994A"/>
+  </symbol>
+</svg>
+
 <div class="app">
   <header>
-    <h1 id="brand">مشاور پوست</h1>
-    <p>سؤال پوستی‌تان را بنویسید تا از اطلاعات ما پاسخ بگیرید.</p>
+    <svg class="crocus" viewBox="0 0 120 150" aria-hidden="true">
+      <defs>
+        <linearGradient id="petal" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#EADDF7"/>
+          <stop offset="1" stop-color="#B38BD3"/>
+        </linearGradient>
+      </defs>
+      <path d="M60 150C60 125 58 105 60 82" stroke="#A67FB5" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <g class="petals">
+        <path d="M60 84C36 62 34 28 52 8 58 28 62 56 60 84z" fill="url(#petal)" opacity=".85"/>
+        <path d="M60 84C84 62 86 28 68 8 62 28 58 56 60 84z" fill="url(#petal)" opacity=".85"/>
+        <path d="M60 86C43 58 45 24 60 3 75 24 77 58 60 86z" fill="url(#petal)"/>
+      </g>
+      <g class="stamens" stroke="#F2994A" stroke-width="2.600" stroke-linecap="round" fill="none">
+        <path d="M57 82C54 68 52 60 49 53"/>
+        <path d="M60 82C60 68 61 58 62 49"/>
+        <path d="M63 82C66 70 70 62 74 56"/>
+      </g>
+    </svg>
+    <img class="logo" src="logo.webp" alt="Zuyter" width="440" height="184">
+    <p class="tagline">دستیار مهربونِ پوستِ تو</p>
   </header>
-  <div id="log" role="log" aria-live="polite"></div>
-  <form id="form" autocomplete="off">
-    <input id="q" type="text" maxlength="300" placeholder="سؤال خود را بنویسید…" aria-label="سؤال شما" required>
-    <button id="send" type="submit">ارسال</button>
-  </form>
-  <footer>این اطلاعات جنبه‌ی آموزشی دارد و جایگزین نظر پزشک یا متخصص پوست نیست.</footer>
+
+  <div id="log" role="log" aria-live="polite" aria-label="گفتگو"></div>
+
+  <div class="dock">
+    <form id="form" autocomplete="off">
+      <input id="q" type="text" maxlength="300" placeholder="سؤالت رو اینجا بنویس…" aria-label="سؤال شما" enterkeyhint="send" required>
+      <button id="send" type="submit" aria-label="ارسال">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.500 11.500 12 5l6.500 6.500"/></svg>
+      </button>
+    </form>
+    <p class="note">این اطلاعات آموزشی است و جایگزین نظر پزشک یا متخصص پوست نیست.</p>
+  </div>
 </div>
+<noscript><p style="text-align:center">برای استفاده از چت، لطفاً جاوااسکریپت را فعال کن.</p></noscript>
 
 <script>
-  // Public (publishable) key: safe to expose; the database only allows calling ask_skin().
+(() => {
+  "use strict";
+
+  // کلید عمومی (publishable): امن است؛ دیتابیس فقط اجازه‌ی صدا زدن ask_skin() را می‌دهد.
   const SUPABASE_URL = "https://dfnvqplwqhuqtfhmpucl.supabase.co";
   const SUPABASE_KEY = "sb_publishable_QbC0Hov3a6gfwOcIiDqeHQ_pZs4x1-2";
+  const PHONE = "09031464741";
 
-  const log = document.getElementById("log");
-  const form = document.getElementById("form");
-  const input = document.getElementById("q");
-  const send = document.getElementById("send");
+  const $ = (id) => document.getElementById(id);
+  const log = $("log"), form = $("form"), input = $("q"), send = $("send");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const scrollDown = () => log.scrollTo({ top: log.scrollHeight, behavior: reduce ? "auto" : "smooth" });
 
-  function add(text, who, url) {
-    const el = document.createElement("div");
-    el.className = "msg " + who;
-    el.textContent = text;
-    // Only link back to the brand's own site.
-    if (url && /^https:\/\/(www\.)?zuyter\.ir\//.test(url)) {
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.className = "src";
-      a.textContent = "مشاهده در سایت زویتر ←";
-      el.appendChild(document.createElement("br"));
-      el.appendChild(a);
+  /* ---------- احوال‌پرسی و گپ دوستانه (بدون تماس با دیتابیس) ---------- */
+  const norm = (s) => s.toLowerCase()
+    .replace(/ي/g, "ی").replace(/ك/g, "ک")
+    .replace(/[ً-ٟـ]/g, "").replace(/[‌‏]/g, " ")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+
+  const GREET = /^(سلام علیکم|سلام|درود|های|هی|hi|hello|صبح بخیر|ظهر بخیر|عصر بخیر|شب بخیر|وقت بخیر)( عزیزم| جان| دوست من)?( |$)/;
+  const GREET_REPLIES = [
+    "سلام عزیزم! 🌸 خوش اومدی. هر سؤالی درباره‌ی پوستت داری بپرس، با کمال میل کمکت می‌کنم.",
+    "سلام قشنگم 💜 خوشحالم که اومدی! پوستت چه سؤالی داره؟",
+    "درود بر تو عزیزم 🌸 بپرس، من اینجام که کمکت کنم.",
+  ];
+  const TALK = [
+    [/^(خوبی|خوبین|خوبید|خوب هستی|حالت چطوره|حالتون چطوره|حال شما چطوره|چطوری|چطورین|چطورید|احوالت|احوال شما|چه خبر|چخبر)( عزیزم| جان)?( \S+)?$/,
+      ["ممنونم عزیزم، من عالی‌ام 💜 تو چطوری؟ پوستت چه خبر؟ هر سؤالی داری بپرس.",
+       "من خوبم، مرسی که پرسیدی 🌸 تو چطوری؟ اگه سؤالی درباره‌ی پوستت داری بگو."]],
+    [/^(من )?(خوبم|عالیم|بدک نیستم|مرسی خوبم|ممنون خوبم|منم خوبم|شکر خدا|الحمدلله)( \S+){0,2}$/,
+      ["وای چه خوب، خوشحال شدم 😊 اگه سؤالی درباره‌ی پوستت داری بپرس.",
+       "عالیه عزیزم 💜 هر وقت خواستی از پوست و محصولات بپرس."]],
+    [/^(خیلی )?(ممنون|مرسی|متشکر|تشکر|مچکر|دمت گرم|دستت درد نکنه|دستتون درد نکنه|قربونت|عالی بود|ممنونم|مرسی از)( \S+){0,3}$/,
+      ["خواهش می‌کنم عزیزم 🌸 خوشحالم که تونستم کمکت کنم. سؤال دیگه‌ای داشتی بپرس.",
+       "قابلی نداشت قشنگم 💜 هر وقت سؤالی داشتی من اینجام."]],
+    [/^(خداحافظ|بای|بای بای|فعلا|شب خوش|روز خوش|خدانگهدار|تا بعد|برم)( \S+){0,2}$/,
+      ["خداحافظ عزیزم 💜 مراقب پوستت باش و هر وقت خواستی برگرد.",
+       "به امید دیدار قشنگم 🌸 روزت پر از شادی!"]],
+    [/^(تو کی|شما کی|تو کی هستی|شما کی هستید|اسمت چیه|اسم شما چیه|کی هستی|ربات|تو ربات|شما ربات|هوش مصنوعی)( \S+){0,3}$/,
+      ["من دستیار پوست زویترم 🌸 یه ربات مهربونم که با اطلاعات خود برند زویتر به سؤال‌های پوستی جواب می‌دم و محصول مناسبت رو نشونت می‌دم. پزشک نیستم، پس برای مشکل جدی حتماً به متخصص پوست سر بزن."]],
+    [/^(کمک|راهنمایی|راهنما|کمکم کن|کمک میخوام|کمک می خوام|چیکار میتونی|چه کاری|چه کارهایی)( \S+){0,3}$/,
+      ["حتماً عزیزم 💜 می‌تونی درباره‌ی نوع پوستت، جوش و لک، آبرسانی، روتین مراقبتی یا محصولات زویتر بپرسی. مثلاً بنویس «پوستم همیشه چرب میشه، چیکار کنم؟»"]],
+    [/^(ها ?ها+|هه+|خخ+|عاشقتم|دوستت دارم|قشنگی|نازی|مهربونی|عالی|آفرین)( \S+){0,2}$/,
+      ["وای مرسی عزیزم، تو لطف داری 💜", "قربونت برم 🌸 تو هم مهربونی!"]],
+    [/^(آره|اره|نه|باشه|اوکی|ok|okay|خب|خیلی خب|حله|بله)$/,
+      ["باشه عزیزم 💜 هر وقت سؤالی داشتی من اینجام."]],
+  ];
+
+  // خروجی: { reply } برای گپ دوستانه، یا { question } برای سؤال واقعی
+  function smallTalk(raw) {
+    let t = norm(raw);
+    if (!t) return { reply: "💜 دیدمش! اگه سؤالی درباره‌ی پوستت داری بنویس تا کمکت کنم." };
+    const greeted = GREET.exec(t);
+    if (greeted) t = t.slice(greeted[0].length).trim();
+    if (!t) return { reply: pick(GREET_REPLIES) };
+    if (t.length <= 40) {
+      for (const [re, replies] of TALK) {
+        if (re.test(t)) return { reply: (greeted ? "سلام عزیزم! " : "") + pick(replies) };
+      }
     }
-    log.appendChild(el);
-    log.scrollTop = log.scrollHeight;
-    return el;
+    return { question: greeted ? t : raw.trim() };
   }
 
-  function addRelated(items) {
-    if (!items.length) return;
+  /* ---------- ساخت حباب‌ها ---------- */
+  function row(who) {
+    const r = document.createElement("div");
+    r.className = "row " + who;
+    log.appendChild(r);
+    return r;
+  }
+  function avatar() {
+    const d = document.createElement("div");
+    d.className = "avatar";
+    d.setAttribute("aria-hidden", "true");
+    d.innerHTML = '<svg viewBox="0 0 24 24"><use href="#bloom"/></svg>';
+    return d;
+  }
+  function bubble(text) {
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.textContent = text;
+    return b;
+  }
+  function userSay(text) {
+    row("user").appendChild(bubble(text));
+    scrollDown();
+  }
+  function botSay(text, ...extras) {
+    const r = row("bot");
+    r.appendChild(avatar());
+    const b = bubble(text);
+    extras.filter(Boolean).forEach((x) => b.appendChild(x));
+    r.appendChild(b);
+    scrollDown();
+    return r;
+  }
+  function typing() {
+    const r = row("bot");
+    r.appendChild(avatar());
+    const b = document.createElement("div");
+    b.className = "bubble dots";
+    b.setAttribute("aria-label", "در حال نوشتن");
+    b.innerHTML = "<span></span><span></span><span></span>";
+    r.appendChild(b);
+    scrollDown();
+    return r;
+  }
+
+  const SAFE_URL = /^https:\/\/(www\.)?zuyter\.ir\//;
+  function linkButton(url, category) {
+    if (!url || !SAFE_URL.test(url)) return null;
+    const wrap = document.createElement("div");
+    const a = document.createElement("a");
+    a.className = "go";
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = category === "محصول" ? "دیدن این محصول در زویتر"
+                  : category === "مقاله" ? "خواندن مقاله‌ی کامل"
+                  : "مشاهده در سایت زویتر";
+    wrap.appendChild(a);
+    return wrap;
+  }
+  function chipList(labels, onPick, title) {
     const box = document.createElement("div");
-    box.className = "related";
-    const label = document.createElement("small");
-    label.textContent = "سؤال‌های مرتبط:";
-    box.appendChild(label);
-    items.forEach((it) => {
+    box.className = "chips";
+    if (title) {
+      const s = document.createElement("small");
+      s.textContent = title;
+      box.appendChild(s);
+    }
+    labels.forEach((label, i) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.textContent = it.question;
-      b.addEventListener("click", () => {
-        add(it.question, "user");
-        add(it.answer, "bot", it.url);
-      });
+      b.className = "chip";
+      b.textContent = label;
+      b.addEventListener("click", () => onPick(label, i));
       box.appendChild(b);
     });
     log.appendChild(box);
-    log.scrollTop = log.scrollHeight;
+    scrollDown();
+    return box;
   }
 
+  function noAnswer() {
+    const tel = document.createElement("a");
+    tel.className = "tel";
+    tel.href = "tel:" + PHONE;
+    tel.textContent = PHONE;
+    const extra = document.createElement("div");
+    extra.append("اگه عجله داری با پشتیبانی زویتر تماس بگیر: ", tel);
+    botSay("این یکی رو هنوز جوابش رو ندارم 🙈 ولی سؤالت ثبت شد تا تیم زویتر جوابش رو آماده کنه. اگه با کلمه‌های دیگه‌ای بپرسی، شاید پیداش کنم.", extra);
+  }
+
+  /* ---------- ارتباط با دیتابیس ---------- */
   async function ask(q) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 15000);
     try {
       const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/ask_skin", {
         method: "POST",
-        headers: { "apikey": SUPABASE_KEY, "Content-Type": "application/json" },
+        headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({ q }),
         signal: ctrl.signal,
       });
@@ -180,37 +348,59 @@
     }
   }
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const q = input.value.trim();
-    if (!q || send.disabled) return;
-    input.value = "";
-    if (/^(سلام|درود|وقت بخیر|صبح بخیر|عصر بخیر|hi|hello)[\s!.؟?]*$/i.test(q)) {
-      add(q, "user");
-      add("سلام! سؤال پوستی یا محصولی خود را بپرسید، مثلاً «کرم آبرسان مناسب پوست چرب» یا «علت جوش زدن صورت».", "bot");
-      return;
-    }
+  let busy = false, starters = null;
+
+  async function handle(raw) {
+    const text = raw.trim();
+    if (!text || busy) return;
+    busy = true;
     send.disabled = true;
-    add(q, "user");
-    const typing = add("در حال جست‌وجو…", "bot");
+    input.value = "";
+    if (starters) { starters.remove(); starters = null; }
+    userSay(text);
+    const wait = typing();
     try {
-      const rows = await ask(q);
-      typing.remove();
-      if (!rows.length) {
-        add("پاسخ این سؤال را هنوز در اطلاعاتمان نداریم. سؤال شما ثبت شد تا به‌زودی پاسخ داده شود. می‌توانید آن را با عبارت دیگری هم بپرسید.", "bot");
+      const talk = smallTalk(text);
+      if (talk.reply) {
+        await sleep(reduce ? 0 : 700);
+        wait.remove();
+        botSay(talk.reply);
       } else {
-        add(rows[0].answer, "bot", rows[0].url);
-        addRelated(rows.slice(1));
+        const rows = await ask(talk.question);
+        wait.remove();
+        if (!rows.length) {
+          noAnswer();
+        } else {
+          botSay(rows[0].answer, linkButton(rows[0].url, rows[0].category));
+          const more = rows.slice(1);
+          if (more.length) {
+            chipList(more.map((r) => r.question), (label, i) => {
+              userSay(more[i].question);
+              botSay(more[i].answer, linkButton(more[i].url, more[i].category));
+            }, "اینا رو هم ببین:");
+          }
+        }
       }
     } catch (err) {
-      typing.remove();
-      add("اتصال برقرار نشد. لطفاً چند لحظه بعد دوباره امتحان کنید.", "bot");
+      wait.remove();
+      botSay("الان نتونستم وصل بشم عزیزم 🌧️ چند لحظه‌ی دیگه دوباره بپرس.");
     } finally {
-      setTimeout(() => { send.disabled = false; input.focus(); }, 1200);
+      setTimeout(() => { busy = false; send.disabled = false; }, 900);
     }
-  });
+  }
 
-  add("سلام! سؤال پوستی خود را بپرسید.", "bot");
+  form.addEventListener("submit", (e) => { e.preventDefault(); handle(input.value); });
+
+  /* ---------- شروع ---------- */
+  botSay("سلام عزیزم! 🌸\nمن دستیار پوست زویترم. هر سؤالی درباره‌ی پوست، جوش، لک، آبرسانی یا محصولات زویتر داری بپرس؛ با کمال میل کمکت می‌کنم 💜");
+  const STARTERS = [
+    "پوستم همیشه چرب میشه، چیکار کنم؟",
+    "تفاوت جای جوش و لک چیه؟",
+    "قیمت کرم آبرسان پوست خشک",
+    "علت جوش زدن صورت چیه؟",
+  ];
+  starters = chipList(STARTERS, (label) => handle(label));
+})();
 </script>
 </body>
 </html>
