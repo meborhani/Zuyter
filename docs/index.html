@@ -396,7 +396,7 @@
       const res = await fetch(SUPABASE_URL + "/functions/v1/chat", {
         method: "POST",
         headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ message, history: history.slice(-6) }),
+        body: JSON.stringify({ message, history: history.slice(-6), profile }),
         signal: ctrl.signal,
       });
       if (!res.ok) return null;
@@ -415,14 +415,88 @@
 
   let busy = false, starters = null;
 
-  async function handle(raw) {
+  /* ---------- پرسشنامه‌ی تشخیص نوع پوست (۱۰ سؤال بسته) ---------- */
+  // امتیازها: o چرب، d خشک، c مختلط (ناحیه‌ی T)، h کم‌آبی، a جوش، s حساسیت، p لک/کدری، w خط و چروک
+  const QUIZ = [
+    ["۳۰ دقیقه بعد از شستن صورت (بدون هیچ محصولی) پوستت چه حسی داره؟",
+      [["کشیده و خشک", { d: 2 }], ["راحت و نرم", {}], ["فقط پیشانی و بینی براق می‌شه", { c: 2, o: 1 }], ["کل صورتم براق و چرب می‌شه", { o: 2 }]]],
+    ["تا عصر، بدون آرایش یا کرم، چقدر چرب و براق می‌شی؟",
+      [["اصلاً", { d: 1 }], ["فقط پیشانی، بینی و چونه", { c: 2 }], ["تقریباً همه‌ی صورت", { o: 2 }], ["کم و قابل‌تحمل", {}]]],
+    ["منافذ صورتت چطوره؟",
+      [["تقریباً دیده نمی‌شن", { d: 1 }], ["فقط دور بینی درشتن", { c: 1 }], ["درشت و واضحن، حتی روی گونه‌ها", { o: 2 }], ["معمولی‌ان", {}]]],
+    ["پوسته‌پوسته شدن، خشکی لب‌ها یا خارش پوست داری؟",
+      [["زیاد", { d: 2 }], ["گاهی", { d: 1 }], ["تقریباً هیچ‌وقت", {}]]],
+    ["بعد از یه کرم آبرسان سبک، پوستت چی می‌شه؟",
+      [["زود جذب می‌شه و دوباره کشیده می‌شم", { h: 2 }], ["نرم و راحت می‌مونه", {}], ["چرب و براق می‌مونه", { o: 1 }]]],
+    ["جوش و جوش‌سرسیاه چقدر اذیتت می‌کنه؟",
+      [["تقریباً همیشه", { a: 2, o: 1 }], ["گاهی، مخصوصاً قبل از پریود یا وقتی استرس دارم", { a: 1 }], ["تقریباً هیچ‌وقت", {}]]],
+    ["با محصول جدید، آفتاب یا هوای سرد دچار سوزش، قرمزی یا خارش می‌شی؟",
+      [["زیاد", { s: 2 }], ["گاهی", { s: 1 }], ["نه، پوستم مقاومه", {}]]],
+    ["لک، جای جوش یا کدری روی پوستت هست؟",
+      [["آره، زیاد", { p: 2 }], ["کم", { p: 1 }], ["نه", {}]]],
+    ["خط و چین ریز (مخصوصاً دور چشم) داری؟",
+      [["آره، واضحه", { w: 2 }], ["کمی", { w: 1 }], ["نه", {}]]],
+    ["فصل سرد و کولر چه بلایی سرت میاره؟",
+      [["پوستم خیلی خشک و کشیده می‌شه", { d: 1, h: 1 }], ["فرقی نمی‌کنه", {}], ["تو فصل گرم خیلی چرب می‌شم", { o: 1 }]]],
+  ];
+  const OPEN_LIMIT = 10;
+  let profile = null, quizBox = null, openCount = 0;
+
+  function skinProfile(t) {
+    let type = "معمولی";
+    if (t.c >= 3 && t.o < 4) type = "مختلط";
+    else if (t.o - t.d >= 2) type = "چرب";
+    else if (t.d - t.o >= 2) type = "خشک";
+    else if (t.c >= 2) type = "مختلط";
+    const flags = [];
+    if (t.h >= 2) flags.push("دهیدراته");
+    if (t.a >= 2) flags.push("مستعد جوش");
+    if (t.s >= 2) flags.push("حساس");
+    if (t.p >= 2) flags.push("لک و کدری");
+    if (t.w >= 2) flags.push("خط و چروک");
+    return { type, flags };
+  }
+
+  function startQuiz() {
+    if (starters) { starters.remove(); starters = null; }
+    if (quizBox) quizBox.remove();
+    const tot = { o: 0, d: 0, c: 0, h: 0, a: 0, s: 0, p: 0, w: 0 };
+    botSay("بریم تشخیص نوع پوستت 💜 ده تا سؤال کوتاهه، فقط گزینه‌ی نزدیک‌تر به پوستت رو انتخاب کن.");
+    const step = (i) => {
+      if (i >= QUIZ.length) return finishQuiz(tot);
+      const [q, opts] = QUIZ[i];
+      botSay(`سؤال ${i + 1} از ${QUIZ.length}\n${q}`);
+      quizBox = chipList(opts.map((o) => o[0]), (label, k) => {
+        quizBox.remove(); quizBox = null;
+        userSay(label);
+        for (const [key, v] of Object.entries(opts[k][1])) tot[key] += v;
+        step(i + 1);
+      });
+    };
+    step(0);
+  }
+
+  async function finishQuiz(tot) {
+    profile = skinProfile(tot);
+    openCount = 0;
+    const label = "پوست " + profile.type + (profile.flags.length ? " (" + profile.flags.join("، ") + ")" : "");
+    botSay("تشخیص من: " + label + " 🌸\nالان یه روتین مناسب پوستت رو برات پیدا می‌کنم…");
+    await handle("نتیجه‌ی تشخیص نوع پوست من: " + label + ". برای این پوست چه روتینی و کدوم محصولات زویتر رو پیشنهاد می‌کنی؟", true);
+    botSay("از اینجا به بعد تا " + OPEN_LIMIT + " تا سؤال آزاد می‌تونی بپرسی؛ هر چی دلت خواست 💜");
+  }
+
+  const WANTS_QUIZ = /(تشخیص (نوع )?پوست|نوع پوست(م| من)? (چیه|چیست|چه نوعیه|چه نوعی)|پوستم چه نوع|پوستم از چه نوع|پرسشنامه)/;
+
+  async function handle(raw, internal) {
     const text = raw.trim();
-    if (!text || busy) return;
+    if (!text || (busy && !internal)) return;
+    if (!internal && quizBox) { quizBox.remove(); quizBox = null; }
+    if (!internal && WANTS_QUIZ.test(norm(text))) { input.value = ""; userSay(text); return startQuiz(); }
     busy = true;
     send.disabled = true;
     input.value = "";
     if (starters) { starters.remove(); starters = null; }
-    userSay(text);
+    if (!internal) userSay(text);
     const wait = typing();
     try {
       const llm = await chatLLM(text);
@@ -432,6 +506,12 @@
         botSayMap(llm.reply, llm.linkmap || {}, ...links);
         remember("user", text);
         remember("bot", llm.reply);
+        if (profile && !internal && ++openCount === OPEN_LIMIT) {
+          const tel = document.createElement("div");
+          tel.append("سؤال‌های آزادت تموم شد 🌸 برای راهنمایی بیشتر با پشتیبانی زویتر تماس بگیر: ", richText(PHONE));
+          botSay("می‌تونی دوباره تشخیص بدی یا هر وقت خواستی ادامه بدی.", tel);
+          chipList(["تشخیص دوباره‌ی نوع پوست"], () => { userSay("تشخیص دوباره‌ی نوع پوست"); startQuiz(); });
+        }
         return;
       }
       // مدل زبانی در دسترس نبود: جستجوی ساده‌ی همیشگی
@@ -469,12 +549,13 @@
   /* ---------- شروع ---------- */
   botSay("سلام عزیزم! 🌸\nمن دستیار پوست زویترم. هر سؤالی درباره‌ی پوست، جوش، لک، آبرسانی یا محصولات زویتر داری بپرس؛ با کمال میل کمکت می‌کنم 💜");
   const STARTERS = [
+    "نوع پوستم رو تشخیص بده (۱۰ سؤال)",
     "پوستم همیشه چرب میشه، چیکار کنم؟",
     "تفاوت جای جوش و لک چیه؟",
     "قیمت کرم آبرسان پوست خشک",
     "علت جوش زدن صورت چیه؟",
   ];
-  starters = chipList(STARTERS, (label) => handle(label));
+  starters = chipList(STARTERS, (label) => (label.startsWith("نوع پوستم") ? (userSay(label), startQuiz()) : handle(label)));
 })();
 </script>
 </body>
